@@ -63,7 +63,24 @@ jaxn.extend(jaxn, {
 	},
 	'urlParam': function (parameter) {
 		if (this.cache['urlParam'] === undefined) {
-			this.cache['urlParam'] = (new URL(document.location)).searchParams;
+			try {
+				this.cache['urlParam'] = (new URL(document.location)).searchParams;
+			} catch (e) {
+				var url = document.location.search.split('+').join('%20');
+				var regex = /[?&]?([^=]+)=([^&]*)/g;
+				var params = {
+					'params': {},
+					'get': function(param) {
+						return this.params[param];
+					}
+				};
+				var matches;
+				while (matches = regex.exec(url)) {
+					var key = decodeURIComponent(matches[1]);
+					params.params[key] = decodeURIComponent(matches[2]);
+				}
+				this.cache['urlParam'] = params;
+			}
 		}
 		return this.cache['urlParam'].get(parameter);
 	},
